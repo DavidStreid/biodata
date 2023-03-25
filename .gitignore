@@ -1,0 +1,9 @@
+.idea
+biostars/results/**/*.json
+biostars/**/*.pdf
+**/*.fasta
+**/*.fa
+**/*.bam
+**/*.bai
+**/*.vcf
+

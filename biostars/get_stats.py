@@ -2,6 +2,8 @@ import sys
 import subprocess
 import json
 
+MONTHS_BACK = 175
+
 def parse_results(result_file):
     result_dic = {}
     with open(result_file, 'r') as in_f:
@@ -12,7 +14,8 @@ def parse_results(result_file):
     return result_dic
 
 def send_queries(tag_dic, fname):
-    month_list = range(1,241)
+    print(f"Retrieving queries from the past ~{int(MONTHS_BACK/12)} years")
+    month_list = range(1,MONTHS_BACK)
     for month in month_list:
         out_f = f'results_{month}.json'
         cmd=f'curl -X POST -F "months={month}" -F "tags=@{fname}" https://www.biostars.org/api/tags/list/ > {out_f}'
@@ -39,23 +42,34 @@ def write_tag_dic(tag_dic):
     lines = []
 
     months = set([])
+
+    columns = []
     for tag, tag_info in tag_dic.items():
-        label = tag_info['label']
-        line = [tag, label]
+        col=[]
+        col.append(tag)
+        # label = tag_info['label']
+        # line = [tag, label]
         for month, month_info in tag_info['months'].items():
-            months.add(month)
+            # months.add(month)
             month_ct = month_info['ct']
-            line.append(str(month_ct))
-        lines.append(line)
+            col.append(str(month_ct))
+            # line.append(str(month_ct))
+        columns.append(col)
+        # lines.append(line)
 
     headers = [ 'tag', 'label' ]
     for month in sorted(list(months)):
-        headers.append(str(month))
+        headers.append(f'm{month}')
 
+    headers = [ 'month' ] + [ c[0] for c in columns ]
     with open(ct_file, 'w') as out_f:
         out_f.write('\t'.join(headers) + '\n')
-        for line in lines:
-            out_f.write('\t'.join(line) + '\n')
+        for i in range(1, len(columns) - 1):
+            vals = '\t'.join(c[i] for c in columns)
+            line = f'm{i}\t{vals}\n'
+            out_f.write(line)
+        # for line in lines:
+            # out_f.write('\t'.join(line) + '\n')
 
 def run():
     tag_file = sys.argv[1]
